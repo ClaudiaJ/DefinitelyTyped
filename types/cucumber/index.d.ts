@@ -20,9 +20,21 @@ export enum Status {
 }
 
 export interface World {
-    attach: Attacher;
+    attach(data: string, mediaType?: string): void;
+    attach(data: Buffer, mediaType: string): void;
+    attach(data: NodeJS.ReadableStream, mediaType: string, callback?: () => void): void | Promise<void>;
     [key: string]: any;
 }
+
+// An Attacher may return a Promise only for ReadableStream data input, and
+// only if no callback is passed. The promise resolves when the stream emits
+// 'end', and rejects, passing through the error, when the stream emits 'error'
+export interface Attacher {
+    (data: string, mediaType?: string): void;
+    (data: Buffer, mediaType: string): void;
+    (data: NodeJS.ReadableStream, mediaType: string, callback?: () => void): void | Promise<void>;
+}
+
 
 export interface CallbackStepDefinition {
     pending(): PromiseLike<any>;
@@ -291,15 +303,6 @@ export interface Feature {
 export type EventHook = (event: events.Event, callback?: () => void) => void;
 
 export type SupportCodeConsumer = (stepDefinitions: StepDefinitions & Hooks) => void;
-
-// An Attacher may return a Promise only for ReadableStream data input, and
-// only if no callback is passed. The promise resolves when the stream emits
-// 'end', and rejects, passing through the error, when the stream emits 'error'
-export interface Attacher {
-    (data: string, mediaType?: string): void;
-    (data: Buffer, mediaType: string): void;
-    (data: NodeJS.ReadableStream, mediaType: string, callback?: () => void): void | Promise<void>;
-}
 
 export function defineSupportCode(consumer: SupportCodeConsumer): void;
 
