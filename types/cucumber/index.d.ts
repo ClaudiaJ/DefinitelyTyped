@@ -8,6 +8,8 @@
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 // TypeScript Version: 2.4
 
+/// <reference types="node" />
+
 export enum Status {
     AMBIGUOUS = "ambiguous",
     FAILED = "failed",
@@ -18,6 +20,7 @@ export enum Status {
 }
 
 export interface World {
+    attach: Attacher;
     [key: string]: any;
 }
 
@@ -67,7 +70,7 @@ export function Given(pattern: RegExp | string, options: StepDefinitionOptions, 
 export function setDefaultTimeout(time: number): void;
 export function setDefinitionFunctionWrapper(fn: () => void, options?: {[key: string]: any}): void;
 // tslint:disable-next-line ban-types
-export function setWorldConstructor(world: ((this: World, init: {attach: Function, parameters: {[key: string]: any}}) => void) | {}): void;
+export function setWorldConstructor(world: ((this: World, init: {attach: Attacher, parameters: {[key: string]: any}}) => void) | {}): void;
 export function Then(pattern: RegExp | string, options: StepDefinitionOptions, code: StepDefinitionCode): void;
 export function Then(pattern: RegExp | string, code: StepDefinitionCode): void;
 export function When(pattern: RegExp | string, options: StepDefinitionOptions, code: StepDefinitionCode): void;
@@ -147,7 +150,7 @@ export interface Hooks {
     AfterAll(options: HookOptions | string, code: GlobalHookCode): void;
     setDefaultTimeout(time: number): void;
     // tslint:disable-next-line ban-types
-    setWorldConstructor(world: ((this: World, init: {attach: Function, parameters: {[key: string]: any}}) => void) | {}): void;
+    setWorldConstructor(world: ((this: World, init: {attach: Attacher, parameters: {[key: string]: any}}) => void) | {}): void;
     defineParameterType(transform: Transform): void;
 }
 
@@ -288,6 +291,15 @@ export interface Feature {
 export type EventHook = (event: events.Event, callback?: () => void) => void;
 
 export type SupportCodeConsumer = (stepDefinitions: StepDefinitions & Hooks) => void;
+
+// An Attacher may return a Promise only for ReadableStream data input, and
+// only if no callback is passed. The promise resolves when the stream emits
+// 'end', and rejects, passing through the error, when the stream emits 'error'
+export interface Attacher {
+    (data: string, mediaType?: string): void;
+    (data: Buffer, mediaType: string): void;
+    (data: NodeJS.ReadableStream, mediaType: string, callback?: () => void): void | Promise<void>;
+}
 
 export function defineSupportCode(consumer: SupportCodeConsumer): void;
 
